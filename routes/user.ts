@@ -23,9 +23,12 @@ class User {
         this.users = [{
             id: 1234,
             userName: 'test',
-            password: 'test'
+            password: 'test',
+            posts: [1]
+
         }];
         this.posts = [{
+            id: 1,
             title: 'Weather',
             content: 'The weather is good today'
         }];
@@ -60,49 +63,52 @@ class User {
 
     private routes(): void {
 
-        // request to get all the users
-        this.express.get("/users", (req, res, next) => {
-            this.logger.info("url:::::" + req.url);
-            res.json(this.users);
-        });
 
-        // request to get all the users by userName
-        this.express.get("/users/:userName", (req, res, next) => {
-            this.logger.info("url:::::" + req.url);
-            const user = this.users.filter(function(user) {
-                if (req.params.userName === user.userName) {
-                    return user;
-                }
-            });
-            res.json(user);
-        });
 
         // request to post the user
         // req.body has object of type {userId: id, posts: []}
-        this.express.post("/user", (req, res, next) => {
-            this.logger.info("url:::::::" + req.url);
-            this.users.push(req.body.user);
+        this.express.get("/users", (req, res, next) => {
+            this.logger.info("url [posts]:::::::" + req.url);
             res.json(this.users);
         });
 
         // request to post the user
         // req.body has object of type {userId: id, posts: []}
         this.express.get("/posts", (req, res, next) => {
-            this.logger.info("url [posts]:::::::" + req.url);
+            this.logger.info("url :::::::" + req.url);
             res.json(this.posts);
         });
 
         this.express.post("/addToFavorites", (req, res, next) => {
-            this.logger.info("url [auth]:::::::" + req.url);
-            this.logger.info("url [auth]:::::::" + JSON.stringify(req.body.post));
-            this.logger.info("url [auth]:::::::" + JSON.stringify(req.body.userValue));
-            res.json(this.users);
+            this.logger.info("url :::::::" + req.url);
+
+            this.users.forEach(user => {
+                if (req.body.username === user.userName) {
+                    user.posts.push(req.body.postId)
+                }
+            })
+
+            res.json(this.posts);
         });
 
+        this.express.post("/removeFromFavorites", (req, res, next) => {
+            this.logger.info("url :::::::" + req.url);
+
+            this.users.forEach(user => {
+                if (req.body.username === user.userName) {
+                    for (let i=0;i<user.posts;i++) {
+                        if (user.posts[i] === req.body.postId) {
+                            user.posts.splice(i,1);
+                        }
+                    }
+                }
+            })
+
+            res.json(this.posts);
+        });
 
         this.express.post("/authenticate", (req, res, next) => {
-            this.logger.info("url [auth]:::::::" + req.url);
-            this.logger.info("req body user" + JSON.stringify(req.body));
+            this.logger.info("url :::::::" + req.url);
 
             this.users.forEach(user => {
                 if (req.body.username === user.userName) {
